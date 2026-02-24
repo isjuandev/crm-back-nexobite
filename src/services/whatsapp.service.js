@@ -44,15 +44,23 @@ const sendWhatsAppMessage = async (to, body) => {
  */
 const getTemplates = async () => {
     try {
-        // 1. Obtener WABA ID
-        const phoneUrl = `https://graph.facebook.com/v22.0/${WHATSAPP_PHONE_NUMBER_ID}?fields=whatsapp_business_account`;
-        const phoneResponse = await axios.get(phoneUrl, {
-            headers: { Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}` }
-        });
+        let wabaId = process.env.META_WABA_ID;
 
-        const wabaId = phoneResponse.data?.whatsapp_business_account?.id;
+        // 1. Obtener WABA ID dinámicamente si no está en el .env
         if (!wabaId) {
-            throw new Error("No se pudo obtener el WABA ID asociado al número.");
+            try {
+                const phoneUrl = `https://graph.facebook.com/v22.0/${WHATSAPP_PHONE_NUMBER_ID}?fields=whatsapp_business_account`;
+                const phoneResponse = await axios.get(phoneUrl, {
+                    headers: { Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}` }
+                });
+                wabaId = phoneResponse.data?.whatsapp_business_account?.id;
+            } catch (err) {
+                console.warn("⚠️ No se pudo obtener el WABA ID dinámicamente. Asegúrate de añadir META_WABA_ID al archivo .env si usas un número de prueba o faltan permisos.");
+            }
+        }
+
+        if (!wabaId) {
+            throw new Error("No se encontró el WABA ID (WhatsApp Business Account ID). Agrégalo a tu .env como META_WABA_ID.");
         }
 
         // 2. Obtener plantillas
