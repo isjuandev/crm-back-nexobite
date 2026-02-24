@@ -61,5 +61,20 @@ router.post('/send', async (req, res) => {
         res.status(500).json({ error: 'Error al enviar mensaje' });
     }
 });
+// POST /messages/sync - Sincronización en tiempo real desde n8n
+router.post('/sync', (req, res) => {
+    try {
+        const payload = req.body;
+        if (payload && payload.message) {
+            emitEvent('newMessage', payload);
+            res.status(200).json({ success: true });
+        } else {
+            res.status(400).json({ error: "Invalid payload format" });
+        }
+    } catch (error) {
+        console.error("❌ Error en endpoint sync:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
 module.exports = router;

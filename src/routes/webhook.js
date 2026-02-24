@@ -67,67 +67,22 @@ router.post("/", async (req, res) => {
             const content = type === "text" ? messageInfo.text.body : "[Mensaje multimedia]";
             const mediaUrl = type !== "text" ? messageInfo[type].id : null; // Guardamos el ID del media por ahora
 
-            // 1. Buscar o Crear el Contacto
-            let contact = await prisma.contact.findUnique({ where: { phone } });
-            if (!contact) {
-                contact = await prisma.contact.create({ data: { phone, name } });
-            } else if (contact.name !== name) {
-                contact = await prisma.contact.update({ where: { phone }, data: { name } });
-            }
-
-            // 2. Buscar o Crear la Conversación
-            let conversation = await prisma.conversation.findFirst({
-                where: { contactId: contact.id },
-                orderBy: { lastMessageAt: 'desc' },
-            });
-
-            if (!conversation || conversation.status === "closed") {
-                conversation = await prisma.conversation.create({
-                    data: { contactId: contact.id, status: "open" }
-                });
-            } else {
-                // Actualizar el timestamp
-                conversation = await prisma.conversation.update({
-                    where: { id: conversation.id },
-                    data: { lastMessageAt: new Date() }
-                });
-            }
-
-            // 3. Crear el mensaje
-            const newMessage = await prisma.message.create({
-                data: {
-                    id: msgId, // Opcional, usar el de WhatsApp para evitar duplicados, o dejar generarlo
-                    conversationId: conversation.id,
-                    content,
-                    type,
-                    direction: "inbound",
-                    status: "delivered",
-                    mediaUrl
-                }
-            });
-
-            console.log(`📩 Mensaje recibido de ${name} (${phone}): ${content}`);
-
-            // 4. Emitir evento por Socket.io
-            emitEvent("newMessage", {
-                message: newMessage,
-                contact: contact,
-                conversation: conversation
-            });
-
-            // 5. Reenviar a n8n si el bot está habilitado
-            if (conversation.botEnabled && process.env.N8N_WEBHOOK_URL) {
+            // 1. Reenviar el payload completo a n8n para su procesamiento
+            // n8n se encargará de crear el cliente, guardar el mensaje e invocar la IA.
+            if (process.env.N8N_WEBHOOK_URL) {
                 try {
                     await axios.post(process.env.N8N_WEBHOOK_URL, req.body, {
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
-                    console.log(`🤖 Payload reenviado a n8n exitosamente.`);
+                    console.log(`🤖 Payload de ${name} (${phone}) reenviado a n8n exitosamente.`);
                 } catch (err) {
                     console.error("❌ Error reenviando a n8n:", err.message);
                 }
             }
+
+
 
         } else if (
             body.entry &&

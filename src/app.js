@@ -6,6 +6,9 @@ const dotenv = require('dotenv');
 // Configuración de variables de entorno
 dotenv.config();
 
+// Ignorar error de certificados autofirmados (usado por Supabase)
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const { initSocket } = require('./services/socket.service');
 
 // Importar rutas
@@ -26,6 +29,8 @@ app.use(express.json({
   }
 }));
 
+const { Client } = require('pg');
+
 // RUTAS
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'CRM Backend API is running' });
@@ -37,7 +42,7 @@ app.use('/conversations', conversationsRoutes);
 
 // Inicializar Socket.io
 const io = initSocket(server);
-app.set('socketio', io); // Para acceder a io desde las rutas si fuera necesario
+app.set('socketio', io); // Para acceder a io desde las rutas
 
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
