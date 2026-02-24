@@ -3,7 +3,6 @@ const crypto = require("crypto");
 const axios = require("axios");
 const router = express.Router();
 const prisma = require("../prisma");
-const { emitEvent } = require("../services/socket.service");
 
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 const APP_SECRET = process.env.WHATSAPP_APP_SECRET; // Opcional, dependiendo de si Meta lo pide explícitamente, normalmente la signature se saca del app secret. Si no lo pasas, ignorar o quitar.
@@ -101,12 +100,7 @@ router.post("/", async (req, res) => {
                     data: { status }
                 });
 
-                // Emitir evento por Socket.io
-                emitEvent("messageStatus", {
-                    messageId: id,
-                    status: status,
-                    conversationId: updatedMessage.conversationId
-                });
+                // Con Supabase Realtime ya no necesitamos emitir el evento manualmente a través de websockets
                 console.log(`🔄 Estado de mensaje actualizado a: ${status}`);
             } catch (e) {
                 // Es posible que recibamos el status antes de guardar o de un ID que no creamos con ese ID de WS. 
