@@ -9,8 +9,6 @@ dotenv.config();
 // Ignorar error de certificados autofirmados (usado por Supabase)
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-const { initSocket } = require('./services/socket.service');
-
 // Importar rutas
 const webhookRoutes = require('./routes/webhook');
 const messagesRoutes = require('./routes/messages');
@@ -39,10 +37,6 @@ app.get('/', (req, res) => {
 app.use('/webhook', webhookRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/conversations', conversationsRoutes);
-
-// Inicializar Socket.io
-const io = initSocket(server);
-app.set('socketio', io); // Para acceder a io desde las rutas
 
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
