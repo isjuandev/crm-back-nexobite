@@ -30,6 +30,8 @@ model Conversation {
   contact       Contact   @relation(fields: [contactId], references: [id])
   messages      Message[]
 
+  @@index([contactId])
+  @@index([contactId, lastMessageAt(sort: Desc)])
   @@map("conversations")
 }
 
@@ -44,5 +46,7 @@ model Message {
   mediaUrl       String?
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 
+  @@index([conversationId])
+  @@index([timestamp(sort: Desc)])
   @@map("messages")
 }
