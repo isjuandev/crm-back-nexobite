@@ -76,6 +76,34 @@ router.post("/", async (req, res) => {
                         }
                     });
                     console.log(`🤖 Payload de ${name} (${phone}) reenviado a n8n exitosamente.`);
+
+                    // Actualizar estado de la conversación a "unread"
+                    const contact = await prisma.contact.findUnique({
+                        where: { phone },
+                        include: {
+                            conversations: {
+                                orderBy: { lastMessageAt: 'desc' },
+                                take: 1
+                            }
+                        }
+                    });
+
+                    if (contact && contact.conversations.length > 0) {
+                        const conversationId = contact.conversations[0].id;
+                        await prisma.conversation.update({
+                            where: { id: conversationId },
+                            data: { status: 'unread' }
+                        });
+
+                        // Emitir evento para el frontend
+                        if (req.io) {
+                            req.io.emit('conversation:updated', {
+                                id: conversationId,
+                                status: 'unread',
+                                type: 'new_message'
+                            });
+                        }
+                    }
                 } catch (err) {
                     console.error("❌ Error reenviando a n8n:", err.message);
                 }

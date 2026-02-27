@@ -13,9 +13,31 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 const webhookRoutes = require('./routes/webhook');
 const messagesRoutes = require('./routes/messages');
 const conversationsRoutes = require('./routes/conversations');
+const labelsRoutes = require('./routes/labels');
+const contactsRoutes = require('./routes/contacts');
 
 const app = express();
 const server = http.createServer(app);
+const { Server } = require('socket.io');
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+  }
+});
+
+// Middleware para inyectar io en las peticiones
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
+io.on('connection', (socket) => {
+  console.log('📱 Cliente conectado:', socket.id);
+
+  socket.on('disconnect', () => {
+    console.log('📱 Cliente desconectado');
+  });
+});
 
 // MIDDLEWARES
 app.use(cors());
@@ -37,6 +59,8 @@ app.get('/', (req, res) => {
 app.use('/webhook', webhookRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/conversations', conversationsRoutes);
+app.use('/labels', labelsRoutes);
+app.use('/contacts', contactsRoutes);
 
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;

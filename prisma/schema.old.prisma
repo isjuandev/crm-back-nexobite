@@ -11,17 +11,12 @@ model Contact {
   id                 String         @id @default(uuid())
   phone              String         @unique
   name               String?
-  email              String?
   company            String?
-  avatarUrl          String?
-  customFields       Json?
   interestStatus     String         @default("new")
   recommendedService String?
   notes              String?
   createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
   conversations      Conversation[]
-  contactNotes       Note[]
 
   @@map("contacts")
 }
@@ -29,12 +24,11 @@ model Contact {
 model Conversation {
   id            String    @id @default(uuid())
   contactId     String
-  status        String    @default("open") // "open", "closed", "pending", "unread"
+  status        String    @default("open") // "open", "closed"
   botEnabled    Boolean   @default(true)   // true = AI responde, false = humano responde
   lastMessageAt DateTime  @default(now())
   contact       Contact   @relation(fields: [contactId], references: [id])
   messages      Message[]
-  labels        ConversationLabel[]
 
   @@index([contactId])
   @@index([contactId, lastMessageAt(sort: Desc)])
@@ -55,36 +49,4 @@ model Message {
   @@index([conversationId])
   @@index([timestamp(sort: Desc)])
   @@map("messages")
-}
-
-model Label {
-  id            String              @id @default(uuid())
-  name          String              @unique
-  color         String              // Hex color e.g., "#FF5733"
-  createdAt     DateTime            @default(now())
-  conversations ConversationLabel[]
-
-  @@map("labels")
-}
-
-model ConversationLabel {
-  conversationId String
-  labelId        String
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  label          Label        @relation(fields: [labelId], references: [id], onDelete: Cascade)
-
-  @@id([conversationId, labelId])
-  @@map("conversation_labels")
-}
-
-model Note {
-  id        String   @id @default(uuid())
-  contactId String
-  content   String
-  createdBy String?  // Optional: User ID or name of the team member who created the note
-  createdAt DateTime @default(now())
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  @@index([contactId])
-  @@map("notes")
 }
