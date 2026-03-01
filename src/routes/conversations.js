@@ -63,6 +63,22 @@ router.get('/:id/messages', async (req, res) => {
             data: { status: 'read' }
         });
 
+        // Si la conversación estaba en 'unread', pasar a 'open'
+        const conv = await prisma.conversation.findUnique({ where: { id } });
+        if (conv && conv.status === 'unread') {
+            await prisma.conversation.update({
+                where: { id },
+                data: { status: 'open' }
+            });
+            if (req.io) {
+                req.io.emit('conversation:updated', {
+                    id,
+                    status: 'open',
+                    type: 'status_updated'
+                });
+            }
+        }
+
         res.json(messages);
     } catch (error) {
         console.error('Error fetching messages:', error);

@@ -60,6 +60,19 @@ router.post('/send-template', async (req, res) => {
             }
         });
 
+        // 4. Emitir eventos en tiempo real al CRM frontend
+        if (req.io) {
+            req.io.emit('message:new', {
+                conversationId,
+                message: newMessage
+            });
+            req.io.emit('conversation:updated', {
+                id: conversationId,
+                status: 'open',
+                type: 'agent_message'
+            });
+        }
+
         res.status(200).json(newMessage);
     } catch (error) {
         console.error('Error enviando plantilla:', error);
@@ -111,6 +124,19 @@ router.post('/send', async (req, res) => {
                 status: 'open' // Aseguramos que se marca como abierta si estaba cerrada
             }
         });
+
+        // 4. Emitir eventos en tiempo real al CRM frontend
+        if (req.io) {
+            req.io.emit('message:new', {
+                conversationId,
+                message: newMessage
+            });
+            req.io.emit('conversation:updated', {
+                id: conversationId,
+                status: 'open',
+                type: 'agent_message'
+            });
+        }
 
         res.status(200).json(newMessage);
     } catch (error) {
