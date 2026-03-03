@@ -2,7 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-const N8N_CONTACT_WEBHOOK_URL = process.env.N8N_CONTACT_WEBHOOK_URL || 'https://n8n.nexobite.com/webhook/contacto-web';
+const N8N_CONTACT_WEBHOOK_URL = process.env.N8N_CONTACT_WEBHOOK_URL || 'https://n8n.nexobite.com/webhook/contact';
 
 // POST /contact — Recibir formulario de contacto y reenviar a n8n
 router.post('/', async (req, res) => {
