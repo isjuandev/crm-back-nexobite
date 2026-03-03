@@ -7,8 +7,8 @@ WORKDIR /app
 # Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm install
+# Instalar dependencias de producción (determinista)
+RUN npm ci --omit=dev
 
 # Copiar el código fuente y el esquema de Prisma
 COPY . .
@@ -20,4 +20,4 @@ RUN npx prisma generate
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["node", "src/app.js"]
+CMD ["node", "--max-old-space-size=384", "src/app.js"]

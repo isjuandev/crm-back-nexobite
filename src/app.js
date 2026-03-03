@@ -6,9 +6,6 @@ const dotenv = require('dotenv');
 // Configuración de variables de entorno
 dotenv.config();
 
-// Ignorar error de certificados autofirmados (usado por Supabase)
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 // Importar rutas
 const webhookRoutes = require('./routes/webhook');
 const messagesRoutes = require('./routes/messages');
@@ -51,7 +48,6 @@ app.use(express.json({
   }
 }));
 
-const { Client } = require('pg');
 
 // RUTAS
 app.get('/', (req, res) => {
@@ -72,3 +68,20 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
 });
+
+// GRACEFUL SHUTDOWN
+const shutdown = (signal) => {
+  console.log(`\n⏹️  ${signal} recibido. Cerrando servidor...`);
+  server.close(() => {
+    console.log('✅ Servidor HTTP cerrado');
+    process.exit(0);
+  });
+  // Forzar cierre si tarda más de 10s
+  setTimeout(() => {
+    console.error('❌ Forzando cierre tras 10s de timeout');
+    process.exit(1);
+  }, 10_000);
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
