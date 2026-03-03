@@ -12,8 +12,7 @@ const messagesRoutes = require('./routes/messages');
 const conversationsRoutes = require('./routes/conversations');
 const labelsRoutes = require('./routes/labels');
 const contactsRoutes = require('./routes/contacts');
-const contactFormRoutes = require('./routes/contact');
-const citasRoutes = require('./routes/citas');
+const contactFormRoutes = require('./routes/contact-form');
 
 const app = express();
 const server = http.createServer(app);
@@ -55,13 +54,13 @@ app.get('/', (req, res) => {
 });
 
 app.use('/webhook', webhookRoutes);
+app.use('/citas-webhook', webhookRoutes);
+app.use('/w', webhookRoutes);
 app.use('/messages', messagesRoutes);
 app.use('/conversations', conversationsRoutes);
 app.use('/labels', labelsRoutes);
 app.use('/contacts', contactsRoutes);
 app.use('/contact', contactFormRoutes);
-app.use('/citas-webhook', citasRoutes);   // Sistema de citas multinegocio
-app.use('/w', require('./routes/whatsapp-dynamic')); // WEBHOOKS DINÁMICOS: /w/ventas, /w/citas, etc.
 
 // INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
